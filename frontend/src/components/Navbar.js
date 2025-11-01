@@ -68,6 +68,12 @@ export const Navbar = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
+                    {user.role === 'admin' && (
+                      <DropdownMenuItem onClick={() => navigate('/admin')} data-testid="nav-admin">
+                        <Shield className="w-4 h-4 mr-2" />
+                        Administration
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={() => navigate('/account')} data-testid="nav-account">
                       <User className="w-4 h-4 mr-2" />
                       Mon Compte
