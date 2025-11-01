@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: music_store_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=music_store
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: music_store_backend
+    restart: always
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017
+      - DB_NAME=music_store
+      - CORS_ORIGINS=*
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production-123456}
+      - STRIPE_API_KEY=${STRIPE_API_KEY:-sk_test_emergent}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY:-}
+      - SENDER_EMAIL=${SENDER_EMAIL:-noreply@musicstore.com}
+    depends_on:
+      - mongodb
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: music_store_frontend
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:8001
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_data:
+    driver: local
