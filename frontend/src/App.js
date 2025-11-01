@@ -8,6 +8,7 @@ import ProductDetail from '@/pages/ProductDetail';
 import Cart from '@/pages/Cart';
 import Success from '@/pages/Success';
 import MyAccount from '@/pages/MyAccount';
+import AdminDashboard from '@/pages/AdminDashboard';
 import Navbar from '@/components/Navbar';
 import { Toaster } from '@/components/ui/sonner';
 
