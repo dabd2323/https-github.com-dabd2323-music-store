@@ -506,7 +506,12 @@ export const AdminDashboard = () => {
               </div>
               <div>
                 <Label>Type</Label>
-                <Select value={productForm.type} onValueChange={(val) => setProductForm({...productForm, type: val})}>
+                <Select value={productForm.type} onValueChange={(val) => {
+                  setProductForm({...productForm, type: val});
+                  setAudioFile(null);
+                  setAudioFiles([]);
+                  setTrackTitles([]);
+                }}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -534,11 +539,50 @@ export const AdminDashboard = () => {
               {audioPreviewFile && <p className="text-sm text-gray-600 mt-1">🎵 {audioPreviewFile.name}</p>}
             </div>
             
-            <div>
-              <Label>Fichier Audio Complet</Label>
-              <Input type="file" accept="audio/*" onChange={(e) => setAudioFile(e.target.files[0])} required />
-              {audioFile && <p className="text-sm text-gray-600 mt-1">🎵 {audioFile.name}</p>}
-            </div>
+            {productForm.type === 'single' ? (
+              <div>
+                <Label>Fichier Audio Complet</Label>
+                <Input type="file" accept="audio/*" onChange={(e) => setAudioFile(e.target.files[0])} required />
+                {audioFile && <p className="text-sm text-gray-600 mt-1">🎵 {audioFile.name}</p>}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <Label>Fichiers Audio de l'Album (Plusieurs pistes)</Label>
+                <Input 
+                  type="file" 
+                  accept="audio/*" 
+                  multiple 
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    setAudioFiles(files);
+                    setTrackTitles(files.map(f => f.name.replace(/\.[^/.]+$/, "")));
+                  }} 
+                  required 
+                />
+                {audioFiles.length > 0 && (
+                  <div className="space-y-2 mt-3 p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-700">
+                      {audioFiles.length} piste(s) sélectionnée(s) :
+                    </p>
+                    {audioFiles.map((file, index) => (
+                      <div key={index} className="space-y-1">
+                        <p className="text-sm text-gray-600">🎵 Piste {index + 1}</p>
+                        <Input 
+                          placeholder={`Titre de la piste ${index + 1}`}
+                          value={trackTitles[index] || ''}
+                          onChange={(e) => {
+                            const newTitles = [...trackTitles];
+                            newTitles[index] = e.target.value;
+                            setTrackTitles(newTitles);
+                          }}
+                          className="text-sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             
             <div>
               <Label>Description</Label>
