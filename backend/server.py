@@ -153,6 +153,7 @@ class ProductUpdate(BaseModel):
     image_url: Optional[str] = None
     audio_preview_url: Optional[str] = None
     audio_file_url: Optional[str] = None
+    tracks: Optional[List[dict]] = None
     description: Optional[str] = None
 
 # ============= UTILITIES =============
