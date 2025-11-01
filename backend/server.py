@@ -177,6 +177,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     return User(**user)
 
+async def get_admin_user(current_user: User = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs")
+    return current_user
+
 # ============= AUTH ROUTES =============
 
 @api_router.post("/auth/register")
