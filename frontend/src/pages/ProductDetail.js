@@ -165,6 +165,23 @@ export const ProductDetail = () => {
               </div>
             </div>
 
+            {/* Album Tracks List */}
+            {product.type === 'album' && product.tracks && product.tracks.length > 0 && (
+              <div className="glass rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-4">Liste des pistes ({product.tracks.length})</h3>
+                <div className="space-y-2">
+                  {product.tracks.map((track, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 hover:bg-white/50 rounded-lg transition-colors">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold text-purple-600 w-6">{track.numero}</span>
+                        <span className="text-sm font-medium text-gray-900">{track.titre}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="glass rounded-2xl p-6">
               <h3 className="text-lg font-semibold mb-3">Description</h3>
               <p className="text-gray-700 leading-relaxed" data-testid="product-detail-description">
