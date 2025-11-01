@@ -88,11 +88,52 @@ export const AdminDashboard = () => {
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
+    setUploading(true);
+    
     try {
+      let image_url = productForm.image_url;
+      let audio_preview_url = productForm.audio_preview_url;
+      let audio_file_url = productForm.audio_file_url;
+      
+      // Upload image if file selected
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        const response = await axios.post(`${API}/upload/image`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        image_url = `${process.env.REACT_APP_BACKEND_URL}${response.data.url}`;
+      }
+      
+      // Upload audio preview if file selected
+      if (audioPreviewFile) {
+        const formData = new FormData();
+        formData.append('file', audioPreviewFile);
+        const response = await axios.post(`${API}/upload/audio-preview`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        audio_preview_url = `${process.env.REACT_APP_BACKEND_URL}${response.data.url}`;
+      }
+      
+      // Upload audio file if file selected
+      if (audioFile) {
+        const formData = new FormData();
+        formData.append('file', audioFile);
+        const response = await axios.post(`${API}/upload/audio-file`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        audio_file_url = `${process.env.REACT_APP_BACKEND_URL}${response.data.url}`;
+      }
+      
+      // Create product with uploaded URLs
       await axios.post(`${API}/products`, {
         ...productForm,
-        prix: parseFloat(productForm.prix)
+        prix: parseFloat(productForm.prix),
+        image_url,
+        audio_preview_url,
+        audio_file_url
       });
+      
       toast.success('Produit ajouté avec succès');
       setAddProductModal(false);
       setProductForm({
@@ -105,9 +146,14 @@ export const AdminDashboard = () => {
         audio_file_url: '',
         description: ''
       });
+      setImageFile(null);
+      setAudioPreviewFile(null);
+      setAudioFile(null);
       fetchAdminData();
     } catch (error) {
       toast.error('Erreur lors de l\'ajout du produit');
+    } finally {
+      setUploading(false);
     }
   };
 
