@@ -65,6 +65,5 @@ async def create_admin():
 🔑 Connectez-vous sur /admin avec ces identifiants")
 
 if __name__ == "__main__":
-    print("
-🔒 Création d'un utilisateur administrateur\n")
+    print("\n🔒 Création d'un utilisateur administrateur\n")
     asyncio.run(create_admin())
