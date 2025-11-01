@@ -650,6 +650,62 @@ async def seed_products():
     
     return {"message": f"{len(products)} produits créés avec succès"}
 
+# ============= FILE UPLOAD ROUTES =============
+
+@api_router.post("/upload/image")
+async def upload_image(file: UploadFile = File(...), admin: User = Depends(get_admin_user)):
+    # Validate file type
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Le fichier doit être une image")
+    
+    # Generate unique filename
+    file_extension = file.filename.split(".")[-1]
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = UPLOAD_DIR / "images" / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Return URL
+    return {"url": f"/uploads/images/{unique_filename}"}
+
+@api_router.post("/upload/audio-preview")
+async def upload_audio_preview(file: UploadFile = File(...), admin: User = Depends(get_admin_user)):
+    # Validate file type
+    if not file.content_type.startswith("audio/"):
+        raise HTTPException(status_code=400, detail="Le fichier doit être un audio")
+    
+    # Generate unique filename
+    file_extension = file.filename.split(".")[-1]
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = UPLOAD_DIR / "audio_previews" / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Return URL
+    return {"url": f"/uploads/audio_previews/{unique_filename}"}
+
+@api_router.post("/upload/audio-file")
+async def upload_audio_file(file: UploadFile = File(...), admin: User = Depends(get_admin_user)):
+    # Validate file type
+    if not file.content_type.startswith("audio/"):
+        raise HTTPException(status_code=400, detail="Le fichier doit être un audio")
+    
+    # Generate unique filename
+    file_extension = file.filename.split(".")[-1]
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = UPLOAD_DIR / "audio_files" / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Return URL
+    return {"url": f"/uploads/audio_files/{unique_filename}"}
+
 # ============= ADMIN ROUTES =============
 
 # Dashboard Stats
