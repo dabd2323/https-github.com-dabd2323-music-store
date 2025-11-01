@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/App';
-import { ShoppingCart, User, LogOut, Menu, X, Music } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Menu, X, Music, Shield } from 'lucide-react';
 import AuthModal from './AuthModal';
 import { Button } from '@/components/ui/button';
 import {
