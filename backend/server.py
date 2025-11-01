@@ -267,7 +267,16 @@ async def login(credentials: UserLogin):
 
 @api_router.get("/auth/me")
 async def get_me(current_user: User = Depends(get_current_user)):
-    return current_user
+    return {
+        "id": current_user.id,
+        "prenom": current_user.prenom,
+        "nom": current_user.nom,
+        "email": current_user.email,
+        "adresse": current_user.adresse,
+        "email_verifie": current_user.email_verifie,
+        "role": current_user.role,
+        "created_at": current_user.created_at
+    }
 
 # ============= PRODUCTS ROUTES =============
 
