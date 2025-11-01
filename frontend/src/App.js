@@ -101,6 +101,7 @@ function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/success" element={<Success />} />
             <Route path="/account" element={<MyAccount />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
           <Toaster position="top-center" />
