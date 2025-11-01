@@ -130,6 +130,21 @@ class EmailVerificationToken(BaseModel):
 class CheckoutRequest(BaseModel):
     origin_url: str
 
+class NewsletterRequest(BaseModel):
+    subject: str
+    message: str
+    send_to: str = "all"  # "all" or "verified"
+
+class ProductUpdate(BaseModel):
+    titre: Optional[str] = None
+    artiste: Optional[str] = None
+    type: Optional[str] = None
+    prix: Optional[float] = None
+    image_url: Optional[str] = None
+    audio_preview_url: Optional[str] = None
+    audio_file_url: Optional[str] = None
+    description: Optional[str] = None
+
 # ============= UTILITIES =============
 
 def hash_password(password: str) -> str:
