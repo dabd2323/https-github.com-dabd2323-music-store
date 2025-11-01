@@ -876,6 +876,9 @@ async def get_all_orders(admin: User = Depends(get_admin_user)):
 # Include router
 app.include_router(api_router)
 
+# Mount static files for uploads
+app.mount("/uploads", StaticFiles(directory="/app/uploads"), name="uploads")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
