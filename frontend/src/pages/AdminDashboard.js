@@ -40,6 +40,12 @@ export const AdminDashboard = () => {
     description: ''
   });
   
+  // File states
+  const [imageFile, setImageFile] = useState(null);
+  const [audioPreviewFile, setAudioPreviewFile] = useState(null);
+  const [audioFile, setAudioFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  
   const [newsletterForm, setNewsletterForm] = useState({
     subject: '',
     message: '',
