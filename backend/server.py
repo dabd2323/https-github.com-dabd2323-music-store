@@ -32,6 +32,10 @@ JWT_EXPIRATION_HOURS = 24
 # Stripe Configuration
 STRIPE_API_KEY = os.getenv('STRIPE_API_KEY', 'sk_test_emergent')
 
+# SendGrid Configuration
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', '')
+SENDER_EMAIL = os.getenv('SENDER_EMAIL', 'noreply@musicstore.com')
+
 # Security
 security = HTTPBearer()
 
