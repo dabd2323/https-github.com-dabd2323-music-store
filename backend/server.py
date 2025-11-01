@@ -631,6 +631,173 @@ async def seed_products():
     
     return {"message": f"{len(products)} produits créés avec succès"}
 
+# ============= ADMIN ROUTES =============
+
+# Dashboard Stats
+@api_router.get("/admin/stats")
+async def get_admin_stats(admin: User = Depends(get_admin_user)):
+    total_users = await db.users.count_documents({})
+    total_products = await db.products.count_documents({})
+    total_orders = await db.orders.count_documents({})
+    paid_orders = await db.orders.count_documents({"payment_status": "paid"})
+    
+    # Calculate total revenue
+    orders = await db.orders.find({"payment_status": "paid"}, {"_id": 0, "total": 1}).to_list(1000)
+    total_revenue = sum(order.get('total', 0) for order in orders)
+    
+    return {
+        "total_users": total_users,
+        "total_products": total_products,
+        "total_orders": total_orders,
+        "paid_orders": paid_orders,
+        "total_revenue": round(total_revenue, 2)
+    }
+
+# User Management
+@api_router.get("/admin/users")
+async def get_all_users(admin: User = Depends(get_admin_user)):
+    users = await db.users.find({}, {"_id": 0, "mot_de_passe": 0}).to_list(1000)
+    for user in users:
+        if isinstance(user.get('created_at'), str):
+            user['created_at'] = datetime.fromisoformat(user['created_at'])
+    return users
+
+@api_router.patch("/admin/users/{user_id}/role")
+async def update_user_role(user_id: str, role: str, admin: User = Depends(get_admin_user)):
+    if role not in ["user", "admin"]:
+        raise HTTPException(status_code=400, detail="Rôle invalide")
+    
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"role": role}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    
+    return {"message": "Rôle mis à jour avec succès"}
+
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user(user_id: str, admin: User = Depends(get_admin_user)):
+    # Don't allow deleting yourself
+    if user_id == admin.id:
+        raise HTTPException(status_code=400, detail="Vous ne pouvez pas supprimer votre propre compte")
+    
+    result = await db.users.delete_one({"id": user_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    
+    # Also delete user's orders and cart
+    await db.orders.delete_many({"user_id": user_id})
+    await db.carts.delete_one({"user_id": user_id})
+    
+    return {"message": "Utilisateur supprimé avec succès"}
+
+# Product Management
+@api_router.put("/admin/products/{product_id}")
+async def update_product(product_id: str, product_update: ProductUpdate, admin: User = Depends(get_admin_user)):
+    product = await db.products.find_one({"id": product_id}, {"_id": 0})
+    if not product:
+        raise HTTPException(status_code=404, detail="Produit non trouvé")
+    
+    update_data = {k: v for k, v in product_update.model_dump().items() if v is not None}
+    
+    if update_data:
+        await db.products.update_one(
+            {"id": product_id},
+            {"$set": update_data}
+        )
+    
+    updated_product = await db.products.find_one({"id": product_id}, {"_id": 0})
+    if isinstance(updated_product.get('created_at'), str):
+        updated_product['created_at'] = datetime.fromisoformat(updated_product['created_at'])
+    
+    return updated_product
+
+@api_router.delete("/admin/products/{product_id}")
+async def delete_product(product_id: str, admin: User = Depends(get_admin_user)):
+    result = await db.products.delete_one({"id": product_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Produit non trouvé")
+    
+    return {"message": "Produit supprimé avec succès"}
+
+# Newsletter / Email to Members
+@api_router.post("/admin/send-newsletter")
+async def send_newsletter(newsletter: NewsletterRequest, admin: User = Depends(get_admin_user)):
+    if not SENDGRID_API_KEY:
+        raise HTTPException(
+            status_code=503, 
+            detail="SendGrid n'est pas configuré. Ajoutez SENDGRID_API_KEY et SENDER_EMAIL dans .env"
+        )
+    
+    # Get users based on filter
+    query = {}
+    if newsletter.send_to == "verified":
+        query["email_verifie"] = True
+    
+    users = await db.users.find(query, {"_id": 0, "email": 1, "prenom": 1, "nom": 1}).to_list(1000)
+    
+    if not users:
+        raise HTTPException(status_code=404, detail="Aucun utilisateur trouvé")
+    
+    # Send emails
+    sg = SendGridAPIClient(SENDGRID_API_KEY)
+    sent_count = 0
+    failed_count = 0
+    
+    for user in users:
+        try:
+            message = Mail(
+                from_email=SENDER_EMAIL,
+                to_emails=user['email'],
+                subject=newsletter.subject,
+                html_content=f"""
+                <html>
+                    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center;">
+                            <h1 style="color: white; margin: 0;">🎵 MusicStore</h1>
+                        </div>
+                        <div style="padding: 40px; background-color: #f9f9f9;">
+                            <p>Bonjour {user.get('prenom', 'Cher membre')},</p>
+                            <div style="background: white; padding: 30px; border-radius: 10px; margin: 20px 0;">
+                                {newsletter.message}
+                            </div>
+                            <p style="color: #666; font-size: 14px;">
+                                Merci de faire partie de notre communauté musicale !
+                            </p>
+                        </div>
+                        <div style="background: #333; color: white; padding: 20px; text-align: center; font-size: 12px;">
+                            <p>© 2025 MusicStore - Tous droits réservés</p>
+                        </div>
+                    </body>
+                </html>
+                """
+            )
+            sg.send(message)
+            sent_count += 1
+        except Exception as e:
+            logging.error(f"Failed to send email to {user['email']}: {str(e)}")
+            failed_count += 1
+    
+    return {
+        "message": f"Newsletter envoyée avec succès",
+        "sent": sent_count,
+        "failed": failed_count,
+        "total": len(users)
+    }
+
+# Get all orders for admin
+@api_router.get("/admin/orders")
+async def get_all_orders(admin: User = Depends(get_admin_user)):
+    orders = await db.orders.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    for order in orders:
+        if isinstance(order.get('created_at'), str):
+            order['created_at'] = datetime.fromisoformat(order['created_at'])
+    return orders
+
 # Include router
 app.include_router(api_router)
 
