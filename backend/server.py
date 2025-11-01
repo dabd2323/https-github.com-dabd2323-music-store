@@ -84,7 +84,8 @@ class Product(BaseModel):
     prix: float
     image_url: str
     audio_preview_url: str
-    audio_file_url: str
+    audio_file_url: str  # For singles
+    tracks: Optional[List[dict]] = []  # For albums: [{"numero": 1, "titre": "Track 1", "audio_url": "..."}]
     description: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
