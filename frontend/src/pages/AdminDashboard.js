@@ -494,25 +494,34 @@ export const AdminDashboard = () => {
                 <Input type="number" step="0.01" value={productForm.prix} onChange={(e) => setProductForm({...productForm, prix: e.target.value})} required />
               </div>
             </div>
+            
             <div>
-              <Label>URL Image</Label>
-              <Input value={productForm.image_url} onChange={(e) => setProductForm({...productForm, image_url: e.target.value})} required />
+              <Label>Image du Produit</Label>
+              <Input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} required />
+              {imageFile && <p className="text-sm text-gray-600 mt-1">📷 {imageFile.name}</p>}
             </div>
+            
             <div>
-              <Label>URL Audio Preview</Label>
-              <Input value={productForm.audio_preview_url} onChange={(e) => setProductForm({...productForm, audio_preview_url: e.target.value})} required />
+              <Label>Fichier Audio Preview (Extrait)</Label>
+              <Input type="file" accept="audio/*" onChange={(e) => setAudioPreviewFile(e.target.files[0])} required />
+              {audioPreviewFile && <p className="text-sm text-gray-600 mt-1">🎵 {audioPreviewFile.name}</p>}
             </div>
+            
             <div>
-              <Label>URL Fichier Audio</Label>
-              <Input value={productForm.audio_file_url} onChange={(e) => setProductForm({...productForm, audio_file_url: e.target.value})} required />
+              <Label>Fichier Audio Complet</Label>
+              <Input type="file" accept="audio/*" onChange={(e) => setAudioFile(e.target.files[0])} required />
+              {audioFile && <p className="text-sm text-gray-600 mt-1">🎵 {audioFile.name}</p>}
             </div>
+            
             <div>
               <Label>Description</Label>
               <Textarea value={productForm.description} onChange={(e) => setProductForm({...productForm, description: e.target.value})} required />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setAddProductModal(false)}>Annuler</Button>
-              <Button type="submit">Ajouter</Button>
+              <Button type="button" variant="outline" onClick={() => setAddProductModal(false)} disabled={uploading}>Annuler</Button>
+              <Button type="submit" disabled={uploading}>
+                {uploading ? 'Téléchargement...' : 'Ajouter'}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
