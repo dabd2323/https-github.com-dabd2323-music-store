@@ -63,6 +63,7 @@ class User(BaseModel):
     email: str
     adresse: str
     email_verifie: bool = False
+    role: str = "user"  # "user" or "admin"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Product(BaseModel):
