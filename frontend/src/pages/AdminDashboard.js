@@ -44,6 +44,8 @@ export const AdminDashboard = () => {
   const [imageFile, setImageFile] = useState(null);
   const [audioPreviewFile, setAudioPreviewFile] = useState(null);
   const [audioFile, setAudioFile] = useState(null);
+  const [audioFiles, setAudioFiles] = useState([]); // For albums (multiple files)
+  const [trackTitles, setTrackTitles] = useState([]); // Titles for each track
   const [uploading, setUploading] = useState(false);
   
   const [newsletterForm, setNewsletterForm] = useState({
