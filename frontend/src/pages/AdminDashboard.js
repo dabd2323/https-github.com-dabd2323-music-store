@@ -96,6 +96,7 @@ export const AdminDashboard = () => {
       let image_url = productForm.image_url;
       let audio_preview_url = productForm.audio_preview_url;
       let audio_file_url = productForm.audio_file_url;
+      let tracks = [];
       
       // Upload image if file selected
       if (imageFile) {
@@ -117,8 +118,29 @@ export const AdminDashboard = () => {
         audio_preview_url = `${process.env.REACT_APP_BACKEND_URL}${response.data.url}`;
       }
       
-      // Upload audio file if file selected
-      if (audioFile) {
+      // If it's an album with multiple files
+      if (productForm.type === 'album' && audioFiles.length > 0) {
+        const formData = new FormData();
+        audioFiles.forEach(file => {
+          formData.append('files', file);
+        });
+        
+        const response = await axios.post(`${API}/upload/multiple-audio-files`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        // Create tracks array
+        tracks = response.data.files.map((file, index) => ({
+          numero: index + 1,
+          titre: trackTitles[index] || file.original_name.replace(/\.[^/.]+$/, ""),
+          audio_url: `${process.env.REACT_APP_BACKEND_URL}${file.url}`
+        }));
+        
+        // Use first track as audio_file_url for compatibility
+        audio_file_url = tracks[0].audio_url;
+      } 
+      // If it's a single with one file
+      else if (audioFile) {
         const formData = new FormData();
         formData.append('file', audioFile);
         const response = await axios.post(`${API}/upload/audio-file`, formData, {
@@ -133,7 +155,8 @@ export const AdminDashboard = () => {
         prix: parseFloat(productForm.prix),
         image_url,
         audio_preview_url,
-        audio_file_url
+        audio_file_url,
+        tracks: productForm.type === 'album' ? tracks : []
       });
       
       toast.success('Produit ajouté avec succès');
@@ -151,6 +174,8 @@ export const AdminDashboard = () => {
       setImageFile(null);
       setAudioPreviewFile(null);
       setAudioFile(null);
+      setAudioFiles([]);
+      setTrackTitles([]);
       fetchAdminData();
     } catch (error) {
       toast.error('Erreur lors de l\'ajout du produit');
