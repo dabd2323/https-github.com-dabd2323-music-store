@@ -708,6 +708,32 @@ async def upload_audio_file(file: UploadFile = File(...), admin: User = Depends(
     # Return URL
     return {"url": f"/uploads/audio_files/{unique_filename}"}
 
+@api_router.post("/upload/multiple-audio-files")
+async def upload_multiple_audio_files(files: List[UploadFile] = File(...), admin: User = Depends(get_admin_user)):
+    """Upload multiple audio files for an album"""
+    uploaded_files = []
+    
+    for file in files:
+        # Validate file type
+        if not file.content_type.startswith("audio/"):
+            continue
+        
+        # Generate unique filename
+        file_extension = file.filename.split(".")[-1]
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        file_path = UPLOAD_DIR / "audio_files" / unique_filename
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        uploaded_files.append({
+            "original_name": file.filename,
+            "url": f"/uploads/audio_files/{unique_filename}"
+        })
+    
+    return {"files": uploaded_files}
+
 # ============= ADMIN ROUTES =============
 
 # Dashboard Stats
