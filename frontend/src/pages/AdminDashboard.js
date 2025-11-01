@@ -159,17 +159,54 @@ export const AdminDashboard = () => {
 
   const handleEditProduct = async (e) => {
     e.preventDefault();
+    setUploading(true);
+    
     try {
-      await axios.put(`${API}/admin/products/${selectedProduct.id}`, {
-        ...productForm,
-        prix: productForm.prix ? parseFloat(productForm.prix) : undefined
-      });
+      let updates = { ...productForm };
+      if (productForm.prix) updates.prix = parseFloat(productForm.prix);
+      
+      // Upload new image if file selected
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        const response = await axios.post(`${API}/upload/image`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        updates.image_url = `${process.env.REACT_APP_BACKEND_URL}${response.data.url}`;
+      }
+      
+      // Upload new audio preview if file selected
+      if (audioPreviewFile) {
+        const formData = new FormData();
+        formData.append('file', audioPreviewFile);
+        const response = await axios.post(`${API}/upload/audio-preview`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        updates.audio_preview_url = `${process.env.REACT_APP_BACKEND_URL}${response.data.url}`;
+      }
+      
+      // Upload new audio file if file selected
+      if (audioFile) {
+        const formData = new FormData();
+        formData.append('file', audioFile);
+        const response = await axios.post(`${API}/upload/audio-file`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        updates.audio_file_url = `${process.env.REACT_APP_BACKEND_URL}${response.data.url}`;
+      }
+      
+      await axios.put(`${API}/admin/products/${selectedProduct.id}`, updates);
       toast.success('Produit mis à jour avec succès');
       setEditProductModal(false);
       setSelectedProduct(null);
+      setImageFile(null);
+      setAudioPreviewFile(null);
+      setAudioFile(null);
       fetchAdminData();
     } catch (error) {
       toast.error('Erreur lors de la mise à jour');
+    } finally {
+      setUploading(false);
     }
   };
 
