@@ -1,0 +1,25 @@
+[[services]]
+name = "backend"
+source = "backend"
+
+[services.build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.backend"
+
+[services.deploy]
+startCommand = "uvicorn server:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/api/products"
+restartPolicyType = "ON_FAILURE"
+
+[[services]]
+name = "frontend"
+source = "frontend"
+
+[services.build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.frontend"
+
+[services.deploy]
+startCommand = "nginx -g 'daemon off;'"
+healthcheckPath = "/"
+restartPolicyType = "ON_FAILURE"
